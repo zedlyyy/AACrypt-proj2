@@ -9,6 +9,8 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class AesCtrCrypto {
 
@@ -36,7 +38,7 @@ public final class AesCtrCrypto {
         byte[] iv = new byte[IV_SIZE_BYTES];
         secureRandom.nextBytes(iv);
 
-        byte[] ciphertext = doCipher(Cipher.ENCRYPT_MODE, plaintext.getBytes(), key, iv);
+        byte[] ciphertext = doCipher(Cipher.ENCRYPT_MODE, plaintext.getBytes(StandardCharsets.UTF_8), key, iv);
 
         byte[] combined = concatenate(iv, ciphertext);
         return Base64.getEncoder().encodeToString(combined);
@@ -53,6 +55,22 @@ public final class AesCtrCrypto {
         byte[] ciphertext = Arrays.copyOfRange(combined, IV_SIZE_BYTES, combined.length);
 
         byte[] plaintext = doCipher(Cipher.DECRYPT_MODE, ciphertext, key, iv);
+        return new String(plaintext, StandardCharsets.UTF_8);
+    }
+
+    
+    public static String encryptDeterministic(String plaintext, SecretKey key) {
+        byte[] fixedIV = new byte[IV_SIZE_BYTES];
+        
+        byte[] ciphertext = doCipher(Cipher.ENCRYPT_MODE, plaintext.getBytes(StandardCharsets.UTF_8), key, fixedIV);
+
+        return Base64.getEncoder().encodeToString(ciphertext);
+    }
+    
+    public static String decryptDeterministic(String encoded, SecretKey key) {
+        byte[] ciphertext = Base64.getDecoder().decode(encoded);
+        byte[] fixedIV = new byte[IV_SIZE_BYTES];
+        byte[] plaintext = doCipher(Cipher.DECRYPT_MODE, ciphertext, key, fixedIV);
         return new String(plaintext, StandardCharsets.UTF_8);
     }
 
