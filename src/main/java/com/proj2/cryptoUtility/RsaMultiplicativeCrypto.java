@@ -1,4 +1,4 @@
-package com.proj2.crypto;
+package com.proj2.cryptoUtility;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
@@ -8,8 +8,7 @@ import java.security.interfaces.RSAPublicKey;
 
 public final class RsaMultiplicativeCrypto {
 
-    private RsaMultiplicativeCrypto() {
-    }
+    private RsaMultiplicativeCrypto() {}
 
     public static class PublicKey {
         public final BigInteger n;
