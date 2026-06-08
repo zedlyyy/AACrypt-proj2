@@ -1,8 +1,8 @@
 package com.proj2;
 
-import com.proj2.crypto.OpeCrypto;
-import com.proj2.crypto.PaillierCrypto;
-import com.proj2.crypto.RsaMultiplicativeCrypto;
+import com.proj2.cryptoUtility.OpeCrypto;
+import com.proj2.cryptoUtility.PaillierCrypto;
+import com.proj2.cryptoUtility.RsaMultiplicativeCrypto;
 
 public class ClientIndex {
 

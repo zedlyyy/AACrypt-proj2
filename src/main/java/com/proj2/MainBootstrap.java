@@ -16,10 +16,10 @@ import org.apache.commons.csv.CSVRecord;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.proj2.crypto.AesCtrCrypto;
-import com.proj2.crypto.OpeCrypto;
-import com.proj2.crypto.PaillierCrypto;
-import com.proj2.crypto.RsaMultiplicativeCrypto;
+import com.proj2.cryptoUtility.AesCtrCrypto;
+import com.proj2.cryptoUtility.OpeCrypto;
+import com.proj2.cryptoUtility.PaillierCrypto;
+import com.proj2.cryptoUtility.RsaMultiplicativeCrypto;
 
 public class MainBootstrap {
     public static void main(String[] args) {
