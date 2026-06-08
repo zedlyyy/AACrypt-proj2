@@ -1,22 +1,19 @@
-package com.proj2.crypto;
+package com.proj2.cryptoUtility;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public final class Sha256Index {
 
     private Sha256Index() {}
 
-    public static String token(String value) {
+    public static String token(String value) throws NoSuchAlgorithmException {
         String normalized = value.trim().toLowerCase();
 
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(normalized.getBytes(StandardCharsets.UTF_8));
-            return toHex(hash);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to compute SHA-256 index token", e);
-        }
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hash = digest.digest(normalized.getBytes(StandardCharsets.UTF_8));
+        return toHex(hash);
     }
 
     private static String toHex(byte[] bytes) {

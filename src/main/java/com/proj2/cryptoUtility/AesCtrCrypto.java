@@ -1,11 +1,16 @@
-package com.proj2.crypto;
+package com.proj2.cryptoUtility;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
@@ -24,17 +29,13 @@ public final class AesCtrCrypto {
 
     private AesCtrCrypto() {}
 
-    public static SecretKey generateKey() {
-        try {
+    public static SecretKey generateKey() throws NoSuchAlgorithmException {
             KeyGenerator keyGenerator = KeyGenerator.getInstance(KEY_ALGORITHM);
             keyGenerator.init(AES_KEY_SIZE_BITS);
             return keyGenerator.generateKey();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to generate AES-256 key", e);
-        }
     }
 
-    public static String encrypt(String plaintext, SecretKey key) {
+    public static String encrypt(String plaintext, SecretKey key) throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
         byte[] iv = new byte[IV_SIZE_BYTES];
         secureRandom.nextBytes(iv);
 
@@ -44,7 +45,7 @@ public final class AesCtrCrypto {
         return Base64.getEncoder().encodeToString(combined);
     }
 
-    public static String decrypt(String encoded, SecretKey key) {
+    public static String decrypt(String encoded, SecretKey key) throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
         byte[] combined = Base64.getDecoder().decode(encoded);
 
         if (combined.length < IV_SIZE_BYTES) {
@@ -59,7 +60,7 @@ public final class AesCtrCrypto {
     }
 
     
-    public static String encryptDeterministic(String plaintext, SecretKey key) {
+    public static String encryptDeterministic(String plaintext, SecretKey key) throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
         byte[] fixedIV = new byte[IV_SIZE_BYTES];
         
         byte[] ciphertext = doCipher(Cipher.ENCRYPT_MODE, plaintext.getBytes(StandardCharsets.UTF_8), key, fixedIV);
@@ -67,21 +68,17 @@ public final class AesCtrCrypto {
         return Base64.getEncoder().encodeToString(ciphertext);
     }
     
-    public static String decryptDeterministic(String encoded, SecretKey key) {
+    public static String decryptDeterministic(String encoded, SecretKey key) throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
         byte[] ciphertext = Base64.getDecoder().decode(encoded);
         byte[] fixedIV = new byte[IV_SIZE_BYTES];
         byte[] plaintext = doCipher(Cipher.DECRYPT_MODE, ciphertext, key, fixedIV);
         return new String(plaintext, StandardCharsets.UTF_8);
     }
 
-    private static byte[] doCipher(int mode, byte[] input, SecretKey key, byte[] iv) {
-        try {
-            Cipher cipher = Cipher.getInstance(CIPHER_SUITE);
-            cipher.init(mode, key, new IvParameterSpec(iv));
-            return cipher.doFinal(input);
-        } catch (Exception e) {
-            throw new RuntimeException("AES/CTR operation failed", e);
-        }
+    private static byte[] doCipher(int mode, byte[] input, SecretKey key, byte[] iv) throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+        Cipher cipher = Cipher.getInstance(CIPHER_SUITE);
+        cipher.init(mode, key, new IvParameterSpec(iv));
+        return cipher.doFinal(input);
     }
 
     private static byte[] concatenate(byte[] left, byte[] right) {

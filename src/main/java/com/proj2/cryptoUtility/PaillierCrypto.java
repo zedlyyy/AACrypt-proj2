@@ -1,4 +1,4 @@
-package com.proj2.crypto;
+package com.proj2.cryptoUtility;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -111,9 +111,6 @@ public final class PaillierCrypto {
         return l.multiply(privateKey.mu).mod(publicKey.n);
     }
 
-    /**
-     * E(a) * E(b) mod n² = E(a + b)
-     */
     public static BigInteger addCiphertexts(
             BigInteger c1,
             BigInteger c2,
@@ -122,9 +119,6 @@ public final class PaillierCrypto {
         return c1.multiply(c2).mod(publicKey.nSquared);
     }
 
-    /**
-     * E(a)^k mod n² = E(a * k)
-     */
     public static BigInteger multiplyByScalar(
             BigInteger ciphertext,
             long scalar,

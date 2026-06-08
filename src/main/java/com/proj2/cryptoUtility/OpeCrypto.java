@@ -1,4 +1,4 @@
-package com.proj2.crypto;
+package com.proj2.cryptoUtility;
 
 import java.util.TreeMap;
 
