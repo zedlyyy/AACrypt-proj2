@@ -23,7 +23,7 @@ import com.proj2.cryptoUtility.RsaMultiplicativeCrypto;
 
 public class MainBootstrap {
     public static void main(String[] args) {
-        String csvFilePath = "Dataset-Emp-Database.csv";
+        String csvFilePath = "src/main/java/com/proj2/Company-Employee.Database/Dataset-Emp-Database.csv";
         String indexFilePath = "client_index.json";
 
         try {
