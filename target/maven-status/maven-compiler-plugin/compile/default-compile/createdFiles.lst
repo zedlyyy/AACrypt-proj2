@@ -14,3 +14,4 @@ com\proj2\cryptoUtility\AesCtrCrypto.class
 com\proj2\cryptoUtility\Sha256Index.class
 com\proj2\cryptoUtility\PaillierCrypto$KeyPair.class
 com\proj2\App.class
+com\proj2\MainQueryProcessor.class

@@ -43,7 +43,7 @@ public class MainBootstrap {
 
             // Create table
             statement.execute("DROP TABLE IF EXISTS encrypted_employees");
-            String createTableQuery = "CREATE TABLE IF NOT EXISTS encrypted_employees (id INT AUTO_INCREMENT PRIMARY KEY, employeeID_DET TEXT, fullName_RND TEXT, age_OPE BIGINT, departmentID_DET TEXT, salary_OPE BIGINT, salary_PAILLIER TEXT, salary_RSA TEXT, bonusEligibility_DET TEXT)";
+            String createTableQuery = "CREATE TABLE IF NOT EXISTS encrypted_employees (id INT AUTO_INCREMENT PRIMARY KEY, employeeID_DET TEXT, fullName_RND TEXT, fullName_DET TEXT, age_OPE BIGINT, departmentID_DET TEXT, salary_OPE BIGINT, salary_PAILLIER TEXT, salary_RSA TEXT, bonusEligibility_DET TEXT)";
             statement.execute(createTableQuery);
             System.out.println("DB structure successfully initialized!");
             
@@ -52,7 +52,7 @@ public class MainBootstrap {
             FileReader fileReader = new FileReader(csvFilePath);
 
             Iterable<CSVRecord> records = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build().parse(fileReader);
-            String insertValuesQuery = "INSERT INTO encrypted_employees (employeeID_DET, fullName_RND, age_OPE, departmentID_DET, salary_OPE, salary_PAILLIER, salary_RSA, bonusEligibility_DET) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            String insertValuesQuery = "INSERT INTO encrypted_employees (employeeID_DET, fullName_RND, fullName_DET, age_OPE, departmentID_DET, salary_OPE, salary_PAILLIER, salary_RSA, bonusEligibility_DET) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             
             PreparedStatement preparedStatement = connection.prepareStatement(insertValuesQuery);
             int rowCount = 0;
@@ -67,6 +67,7 @@ public class MainBootstrap {
 
                 String encEmpID = AesCtrCrypto.encryptDeterministic(empID, deterministicKey);
                 String encFullName = AesCtrCrypto.encrypt(fullName, randomKey);
+                String encFullNameDeterministic = AesCtrCrypto.encryptDeterministic(fullName, deterministicKey);
                 long opeAge = ope.encrypt(age);
                 String encDeptID = AesCtrCrypto.encryptDeterministic(deptID, deterministicKey);
                 long opeSalary = ope.encrypt(salary);
@@ -78,12 +79,13 @@ public class MainBootstrap {
 
                 preparedStatement.setString(1, encEmpID);
                 preparedStatement.setString(2, encFullName);
-                preparedStatement.setLong(3, opeAge);
-                preparedStatement.setString(4, encDeptID);
-                preparedStatement.setLong(5, opeSalary);
-                preparedStatement.setString(6, paillierSalary.toString());
-                preparedStatement.setString(7, rsaSalary.toString());
-                preparedStatement.setString(8, encBonusEligibility);
+                preparedStatement.setString(3, encFullNameDeterministic);
+                preparedStatement.setLong(4, opeAge);
+                preparedStatement.setString(5, encDeptID);
+                preparedStatement.setLong(6, opeSalary);
+                preparedStatement.setString(7, paillierSalary.toString());
+                preparedStatement.setString(8, rsaSalary.toString());
+                preparedStatement.setString(9, encBonusEligibility);
 
                 preparedStatement.executeUpdate();
                 rowCount++;
