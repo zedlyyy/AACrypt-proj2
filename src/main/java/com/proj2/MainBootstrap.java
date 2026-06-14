@@ -22,12 +22,42 @@ import com.proj2.cryptoUtility.PaillierCrypto;
 import com.proj2.cryptoUtility.RsaMultiplicativeCrypto;
 
 public class MainBootstrap {
+
+    //Helper class
+    private static class BenchmarkStats {
+        long totalNs = 0;
+        long count = 0;
+
+        void add(long durationNs) {
+            totalNs += durationNs;
+            count++;
+        }
+
+        double totalMs() {
+            return totalNs / 1_000_000.0;
+        }
+
+        double avgMs() {
+            if (count == 0) return 0.0;
+            return (totalNs / 1_000_000.0) / count;
+        }
+    }
+
+
     public static void main(String[] args) {
         String csvFilePath = "src/main/java/com/proj2/Company-Employee.Database/Dataset-Emp-Database.csv";
         String indexFilePath = "client_index.json";
 
         try {
+            long bootstrapStart = System.nanoTime();
             System.out.println("Starting Client Bootstrap...");
+
+            //Benchmark classes
+            BenchmarkStats aesDetStats = new BenchmarkStats();
+            BenchmarkStats aesRndStats = new BenchmarkStats();
+            BenchmarkStats opeStats = new BenchmarkStats();
+            BenchmarkStats paillierStats = new BenchmarkStats();
+            BenchmarkStats rsaStats = new BenchmarkStats();
 
             // Generate keys
             SecretKey deterministicKey = AesCtrCrypto.generateKey();
@@ -65,17 +95,52 @@ public class MainBootstrap {
                 int salary = Integer.parseInt(record.get("Salary"));
                 String bonusEligibility = record.get("BonusEligibiity");
 
+                long t0, t1;
+
+                t0 = System.nanoTime();
                 String encEmpID = AesCtrCrypto.encryptDeterministic(empID, deterministicKey);
+                t1 = System.nanoTime();
+                aesDetStats.add(t1 - t0);
+
+                t0 = System.nanoTime();
                 String encFullName = AesCtrCrypto.encrypt(fullName, randomKey);
+                t1 = System.nanoTime();
+                aesRndStats.add(t1 - t0);
+
+                t0 = System.nanoTime();
                 String encFullNameDeterministic = AesCtrCrypto.encryptDeterministic(fullName, deterministicKey);
+                t1 = System.nanoTime();
+                aesDetStats.add(t1 - t0);
+
+                t0 = System.nanoTime();
                 long opeAge = ope.encrypt(age);
+                t1 = System.nanoTime();
+                opeStats.add(t1 - t0);
+
+                t0 = System.nanoTime();
                 String encDeptID = AesCtrCrypto.encryptDeterministic(deptID, deterministicKey);
+                t1 = System.nanoTime();
+                aesDetStats.add(t1 - t0);
+
+                t0 = System.nanoTime();
                 long opeSalary = ope.encrypt(salary);
+                t1 = System.nanoTime();
+                opeStats.add(t1 - t0);
 
+                t0 = System.nanoTime();
                 BigInteger paillierSalary = PaillierCrypto.encrypt(salary, paillierKeys.publicKey);
-                BigInteger rsaSalary = RsaMultiplicativeCrypto.encrypt(salary, rsaKeys.publicKey);
+                t1 = System.nanoTime();
+                paillierStats.add(t1 - t0);
 
+                t0 = System.nanoTime();
+                BigInteger rsaSalary = RsaMultiplicativeCrypto.encrypt(salary, rsaKeys.publicKey);
+                t1 = System.nanoTime();
+                rsaStats.add(t1 - t0);
+
+                t0 = System.nanoTime();
                 String encBonusEligibility = AesCtrCrypto.encryptDeterministic(bonusEligibility, deterministicKey);
+                t1 = System.nanoTime();
+                aesDetStats.add(t1 - t0);
 
                 preparedStatement.setString(1, encEmpID);
                 preparedStatement.setString(2, encFullName);
@@ -93,7 +158,28 @@ public class MainBootstrap {
             fileReader.close();
             System.out.println("Successfully encrypted values and inserted them into DB.");
             System.out.println("Rows inserted: " + rowCount);
-            
+
+            System.out.println();
+
+            System.out.println("=== ENCRYPTION TIME BENCHMARKS ===");
+            System.out.printf("AES/CTR deterministic:  total=%.3f ms, operations=%d, avg=%.6f ms/op%n",
+                    aesDetStats.totalMs(), aesDetStats.count, aesDetStats.avgMs());
+
+            System.out.printf("AES/CTR randomized:     total=%.3f ms, operations=%d, avg=%.6f ms/op%n",
+                    aesRndStats.totalMs(), aesRndStats.count, aesRndStats.avgMs());
+
+            System.out.printf("OPE:                    total=%.3f ms, operations=%d, avg=%.6f ms/op%n",
+                    opeStats.totalMs(), opeStats.count, opeStats.avgMs());
+
+            System.out.printf("Paillier 2048-bit:      total=%.3f ms, operations=%d, avg=%.6f ms/op%n",
+                    paillierStats.totalMs(), paillierStats.count, paillierStats.avgMs());
+
+            System.out.printf("RSA 2048-bit:           total=%.3f ms, operations=%d, avg=%.6f ms/op%n",
+                    rsaStats.totalMs(), rsaStats.count, rsaStats.avgMs());
+            System.out.println("==================================");
+            System.out.println();
+
+ 
             System.out.println("Saving client index...");
             ClientIndex index = new ClientIndex();
             index.deterministicKeyBase64 = Base64.getEncoder().encodeToString(deterministicKey.getEncoded());
@@ -108,10 +194,23 @@ public class MainBootstrap {
             }
 
             System.out.println("Client index saved!");
+            System.out.println();
             preparedStatement.close();
             statement.close();
             connection.close();
             
+            //Benchmarks
+            long bootstrapEnd = System.nanoTime();
+
+            double bootstrapLatencyMs = (bootstrapEnd - bootstrapStart) / 1_000_000.0;
+            double bootstrapLatencySeconds = bootstrapLatencyMs / 1000.0;
+
+            System.out.println("=== BOOTSTRAP TIME BENCHMARKS ===");
+            System.out.printf("BOOTSTRAP LATENCY IN MS=%.3f%n", bootstrapLatencyMs);
+            System.out.printf("BOOTSTRAP LATENCY IN SECONDS=%.3f%n", bootstrapLatencySeconds);
+            System.out.println("=================================");
+            System.out.println();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
